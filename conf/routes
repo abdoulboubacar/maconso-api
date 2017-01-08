@@ -1,0 +1,22 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+PUT        /api/deal/create         controllers.ApiController.createDeal()
+PUT        /api/user/create         controllers.ApiController.createUser()
+GET        /api/user/:email         controllers.ApiController.getUser(email:String)
+PUT        /api/state/create        controllers.ApiController.createState()
+GET        /swagger.json            controllers.ApiHelpController.getResources()
+GET        /api                       controllers.ApiController.swagger()
+GET        /                       controllers.ApiController.swagger()
+
+
+# An example controller showing a sample home page
+#GET        /                        controllers.HomeController.index
+# An example controller showing how to use dependency injection
+#GET        /count                   controllers.CountController.count
+# An example controller showing how to write asynchronous code
+#GET        /message                 controllers.AsyncController.message
+
+# Map static resources from the /public folder to the /assets URL path
+GET        /assets/*file            controllers.Assets.versioned(path="/public", file: Asset)
