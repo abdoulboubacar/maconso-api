@@ -24,12 +24,20 @@ public class ApiController extends Controller {
     @Inject
     FormFactory formFactory;
 
+    private void allowCrosHeaders() {
+        response().setHeader("Access-Control-Allow-Origin", "*");
+        response().setHeader("Allow", "*");
+        response().setHeader("Access-Control-Allow-Methods", "POST, PATCH, GET, PUT, DELETE, OPTIONS");
+        response().setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Referer, User-Agent");
+    }
+
     public Result swagger() {
         return ok(swagger.render());
     }
 
     @ApiOperation(value = "Create a user", response = User.class)
     public Result createUser() {
+        allowCrosHeaders();
         Form<User> form = formFactory.form(User.class).bindFromRequest();
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -44,6 +52,8 @@ public class ApiController extends Controller {
     @ApiOperation(value = "Get a user", response = User.class)
     @ApiParam(name = "email")
     public Result getUser(String email) {
+        allowCrosHeaders();
+
         User user = User.findByEmail(email);
         if (user == null) {
             return notFoundResult("not fount user " + email);
@@ -54,6 +64,8 @@ public class ApiController extends Controller {
 
     @ApiOperation(value = "Get a deal", response = Deal.class)
     public Result createDeal() {
+        allowCrosHeaders();
+
         Form<Deal> form = formFactory.form(Deal.class).bindFromRequest();
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -66,6 +78,8 @@ public class ApiController extends Controller {
 
     @ApiOperation(value = "Add state", response = State.class)
     public Result createState() {
+        allowCrosHeaders();
+
         Form<State> form = formFactory.form(State.class).bindFromRequest();
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
