@@ -2,7 +2,6 @@ package models;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Model;
-import play.data.validation.Constraints;
 
 import javax.persistence.*;
 import java.util.List;
@@ -21,19 +20,15 @@ public class User extends Model {
     public Long id;
 
     @Column(nullable = false, unique = true)
-    @Constraints.Required
-    @Constraints.Email
     private String email;
 
     @Column
-    @Constraints.Required
     private String name;
 
     @OneToMany(mappedBy = "user")
     private List<Deal> deals;
 
     public static Finder<Long, User> find = new Finder<Long, User>(User.class);
-
 
     public static User findByEmail(String email) {
         ExpressionList<User> res = find.where().eq("email", email);

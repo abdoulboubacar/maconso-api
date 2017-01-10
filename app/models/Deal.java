@@ -3,10 +3,10 @@ package models;
 import com.avaje.ebean.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import play.data.format.Formats;
-import play.data.validation.Constraints;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 
 /**
  * Created by abdoulbou on 29/12/16.
@@ -22,7 +22,6 @@ public class Deal extends Model {
 
     @Column
     @Enumerated(EnumType.STRING)
-    @Constraints.Required
     private Resource resource;
 
     @Column
@@ -30,11 +29,9 @@ public class Deal extends Model {
     private Supplier supplier;
 
     @Column
-    @Formats.DateTime(pattern="dd/MM/yyyy")
     private Date startAt;
 
     @Column
-    @Formats.DateTime(pattern="dd/MM/yyyy")
     private Date endAt;
 
     @Column
@@ -44,15 +41,22 @@ public class Deal extends Model {
     private List<State> states;
 
     @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name="user_id", referencedColumnName="id")
-    @Constraints.Required
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
     private User user;
 
     public static Finder<Long, Deal> find = new Finder<Long, Deal>(Deal.class);
 
-    public State getState(Date date) {
-        return getStates().stream().filter(state -> state.getDate().equals(date)).findFirst().get();
+    public State getLastState() {
+        if (getStates().isEmpty()) {
+            return null;
+        }
+
+        if (getStates().size() == 1) {
+            return getStates().get(0);
+        }
+
+        return getStates().stream().sorted((state, t1) -> t1.getDate().compareTo(state.getDate())).findFirst().get();
     }
 
     public Long getId() {

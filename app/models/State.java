@@ -2,7 +2,6 @@ package models;
 
 import com.avaje.ebean.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import play.data.validation.Constraints;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -20,7 +19,6 @@ public class State extends Model {
     public Long id;
 
     @Column
-    @Constraints.Required
     private Long value;
 
     @Column
@@ -30,11 +28,9 @@ public class State extends Model {
     private Double unitPrice;
 
     @ManyToOne()
-    @Constraints.Required
     @JsonIgnore
     private Deal deal;
 
-    @Constraints.Required
     @Column
     private Date date;
 
