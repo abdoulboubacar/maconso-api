@@ -1,7 +1,6 @@
 package form;
 
 import models.Resource;
-import models.Supplier;
 import play.data.format.Formats;
 import play.data.validation.Constraints;
 
@@ -16,7 +15,13 @@ public class DealForm {
     @Constraints.Required
     private Resource resource;
 
-    private Supplier supplier;
+    @Constraints.Required
+    private String supplier;
+
+    @Constraints.Required
+    private Integer postalCode;
+
+    private String name;
 
     @Formats.DateTime(pattern = "dd/MM/yyyy")
     private Date startAt;
@@ -25,6 +30,8 @@ public class DealForm {
     private Date endAt;
 
     private Double unitPrice;
+
+    private Double subscriptionPrice;
 
     private List<StateForm> states;
 
@@ -36,11 +43,11 @@ public class DealForm {
         this.resource = resource;
     }
 
-    public Supplier getSupplier() {
+    public String getSupplier() {
         return supplier;
     }
 
-    public void setSupplier(Supplier supplier) {
+    public void setSupplier(String supplier) {
         this.supplier = supplier;
     }
 
@@ -76,4 +83,27 @@ public class DealForm {
         this.states = states;
     }
 
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(Integer postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public Double getSubscriptionPrice() {
+        return subscriptionPrice;
+    }
+
+    public void setSubscriptionPrice(Double subscriptionPrice) {
+        this.subscriptionPrice = subscriptionPrice;
+    }
 }

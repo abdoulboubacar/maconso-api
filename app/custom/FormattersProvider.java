@@ -1,6 +1,7 @@
 package custom;
 
 import models.Deal;
+import models.Resource;
 import models.User;
 import play.Logger;
 import play.data.format.Formatters;
@@ -58,6 +59,20 @@ public class FormattersProvider implements Provider<Formatters> {
             @Override
             public String print(Deal deal, Locale locale) {
                 return Json.toJson(deal.getId()).asText();
+            }
+        });
+
+        //resource
+        formatters.register(Resource.class, new Formatters.SimpleFormatter<Resource>() {
+
+            @Override
+            public Resource parse(String text, Locale locale) throws ParseException {
+                return Resource.findByKey(String.valueOf(text));
+            }
+
+            @Override
+            public String print(Resource resource, Locale locale) {
+                return Json.toJson(resource.getId()).asText();
             }
         });
 

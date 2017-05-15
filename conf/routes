@@ -2,13 +2,21 @@
 # This file defines all application routes (Higher priority routes first)
 # ~~~~
 
-PUT        /api/deal/create/:email          controllers.ApiController.createDeal(email:String)
-PUT        /api/user/create                 controllers.ApiController.createUser()
-GET        /api/user/:email                 controllers.ApiController.getUser(email:String)
+POST          /api/login                                                                 controllers.SecurityController.authenticate()
+GET           /api/logout                                                                controllers.SecurityController.logout()
+PUT           /api/register                                                              controllers.SecurityController.register()
+
+PUT        /api/deal/create          controllers.ApiController.createDeal()
+POST        /api/deal/update/:dealId          controllers.ApiController.updateDeal(dealId:Long)
+GET        /api/resources         controllers.ApiController.getResources()
+GET        /api/resources/:key        controllers.ApiController.getResource(key:String)
+GET        /api/deal/:dealId/states/:year/:unit        controllers.ApiController.getFormattedStates(dealId:Long, year:Integer, unit:String)
+GET        /api/deals/:userId        controllers.ApiController.getDeals(userId:Long)
+
 PUT        /api/state/create/:dealId        controllers.ApiController.createState(dealId:Long)
-GET        /swagger.json                    controllers.ApiHelpController.getResources()
-GET        /api                             controllers.ApiController.swagger()
-GET        /                                controllers.ApiController.swagger()
+#GET        /swagger.json                    controllers.ApiHelpController.getResources()
+#GET        /api                             controllers.ApiController.swagger()
+#GET        /                                controllers.ApiController.swagger()
 
 
 # An example controller showing a sample home page

@@ -17,6 +17,8 @@ libraryDependencies ++= Seq(
   javaJdbc,
   cache,
   javaWs,
+  filters,
   "postgresql" % "postgresql" % "9.1-903.jdbc4",
-  "io.swagger" %% "swagger-play2" % "1.5.3"
+  "io.jsonwebtoken" % "jjwt" % "0.7.0",
+  "org.mindrot" % "jbcrypt" % "0.3m"
 )

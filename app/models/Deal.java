@@ -1,7 +1,10 @@
 package models;
 
+import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonValue;
 import play.data.format.Formats;
 
 import javax.persistence.*;
@@ -17,16 +20,19 @@ public class Deal extends Model {
 
     public static final String TABLE = "energie_deal";
 
-    @Id
+    @javax.persistence.Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
     public Long id;
 
-    @Column
-    @Enumerated(EnumType.STRING)
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "resource_id", referencedColumnName = "id")
     private Resource resource;
 
     @Column
-    @Enumerated(EnumType.STRING)
-    private Supplier supplier;
+    private String supplier;
+
+    @Column
+    private String name;
 
     @Column
     private Date startAt;
@@ -36,6 +42,12 @@ public class Deal extends Model {
 
     @Column
     private Double unitPrice;
+
+    @Column
+    private Integer postalCode;
+
+    @Column
+    private Double subscriptionPrice;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "deal")
     private List<State> states;
@@ -47,6 +59,7 @@ public class Deal extends Model {
 
     public static Finder<Long, Deal> find = new Finder<Long, Deal>(Deal.class);
 
+    @JsonProperty(value = "lastState")
     public State getLastState() {
         if (getStates().isEmpty()) {
             return null;
@@ -75,11 +88,11 @@ public class Deal extends Model {
         this.resource = resource;
     }
 
-    public Supplier getSupplier() {
+    public String getSupplier() {
         return supplier;
     }
 
-    public void setSupplier(Supplier supplier) {
+    public void setSupplier(String supplier) {
         this.supplier = supplier;
     }
 
@@ -121,5 +134,29 @@ public class Deal extends Model {
 
     public void setUser(User user) {
         this.user = user;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Integer getPostalCode() {
+        return postalCode;
+    }
+
+    public void setPostalCode(Integer postalCode) {
+        this.postalCode = postalCode;
+    }
+
+    public Double getSubscriptionPrice() {
+        return subscriptionPrice;
+    }
+
+    public void setSubscriptionPrice(Double subscriptionPrice) {
+        this.subscriptionPrice = subscriptionPrice;
     }
 }

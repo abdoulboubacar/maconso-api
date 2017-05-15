@@ -1,0 +1,10 @@
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (1, 345, 345, 0.1494, 1, '2017-04-28 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (2, 350, 5, 0.1494, 1, '2017-04-29 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (3, 355, 5, 0.1494, 1, '2017-04-30 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (4, 375, 20, 0.1494, 1, '2017-05-03 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (5, 400, 25, 0.1494, 1, '2017-05-06 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (6, 425, 25, 0.1494, 1, '2017-05-09 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (7, 430, 5, 0.1494, 1, '2017-05-10 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (8, 450, 20, 0.1494, 1, '2017-05-15 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (9, 473, 23, 0.1494, 1, '2017-05-19 21:43:21.436000');
+INSERT INTO public.energie_state (id, value, diff, unit_price, deal_id, date) VALUES (10, 500, 27, 0.1494, 1, '2017-05-25 21:43:21.436000');

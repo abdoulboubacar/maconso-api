@@ -1,84 +1,49 @@
 package controllers;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.google.common.net.MediaType;
-import com.google.inject.Inject;
 import factory.DealFactory;
 import factory.StateFactory;
-import factory.UserFactory;
 import form.DealForm;
 import form.StateForm;
-import form.UserForm;
-import io.swagger.annotations.*;
 import models.Deal;
+import models.Resource;
 import models.State;
 import models.User;
+import org.apache.commons.lang3.time.DateUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeField;
 import play.data.Form;
 import play.data.FormFactory;
 import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
-import views.html.swagger;
+import play.mvc.Security;
+import utils.CoefProcessor;
 
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
+import javax.inject.Inject;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by abdoulbou on 29/12/16.
  */
-@Api(value = "/energie", description = "Gestion de ma consommation énergétique")
 public class ApiController extends Controller {
 
     @Inject
     FormFactory formFactory;
 
-    public Result swagger() {
-        return ok(swagger.render());
+    @Inject
+    CoefProcessor coefProcessor;
+
+    @Security.Authenticated(Secured.class)
+    public Result getDeals(Long userId) {
+        return ok(Json.toJson(Secured.getUser().getDeals())).as(MediaType.JSON_UTF_8.toString());
     }
 
-    @ApiOperation(value = "Create a user", response = UserForm.class)
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "name", value = "User's name", required = true, dataType = "string", paramType = "form", defaultValue = "Razak"),
-            @ApiImplicitParam(name = "email", value = "User's email", required = true, dataType = "string", paramType = "form", defaultValue = "test@gmail.com"),
-    })
-    public Result createUser() {
-                Form<UserForm> form = formFactory.form(UserForm.class).bindFromRequest();
-        if (form.hasErrors()) {
-            return badRequest(form.errorsAsJson());
-        }
+    @Security.Authenticated(Secured.class)
+    public Result createDeal() {
 
-        try {
-            UserForm userForm = form.get();
-            User user = UserFactory.createUser(userForm);
-            return ok(Json.toJson(user)).as(MediaType.JSON_UTF_8.toString());
-        } catch (Exception e) {
-            return badRequest(Json.toJson(e.getMessage()));
-        }
-
-    }
-
-    @ApiOperation(value = "Get a user", response = UserForm.class)
-    public Result getUser(@ApiParam(value = "User email", defaultValue = "test@gmail.com") String email) {
-        
-        User user = User.findByEmail(email);
-        if (user == null) {
-            return notFoundResult("not fount user " + email);
-        }
-
-        return ok(Json.toJson(user)).as(MediaType.JSON_UTF_8.toString());
-    }
-
-    @ApiOperation(value = "Get a deal", response = DealForm.class)
-    @ApiImplicitParams(value = {
-            @ApiImplicitParam(name = "resource", value = "Resource type", required = true, dataType = "string", paramType = "form", defaultValue = "GAS"),
-            @ApiImplicitParam(name = "unitPrice", value = "Unit price", required = true, dataType = "double", paramType = "form", defaultValue = "0.0675"),
-            @ApiImplicitParam(name = "supplier", value = "Supplier", required = false, dataType = "string", paramType = "form"),
-            @ApiImplicitParam(name = "startAt", value = "Start date", required = false, dataType = "date", paramType = "form", example = "dd/MM/yyyy"),
-            @ApiImplicitParam(name = "endAt", value = "End date", required = false, dataType = "date", paramType = "form", example = "dd/MM/yyyy"),
-    })
-    public Result createDeal(@ApiParam(value = "User's email", defaultValue = "test@gmail.com", required = true) String email) {
-        
         Form<DealForm> form = formFactory.form(DealForm.class).bindFromRequest();
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -87,7 +52,7 @@ public class ApiController extends Controller {
         try {
             DealForm dealForm = form.get();
             Deal deal = DealFactory.createDeal(dealForm);
-            User user = User.findByEmail(email);
+            User user = Secured.getUser();
             deal.setUser(user);
             deal.save();
 
@@ -98,16 +63,39 @@ public class ApiController extends Controller {
 
     }
 
-    private Result notFoundResult(String message) {
-        return notFound(Json.toJson(new String[][]{{"message"}, {message}}));
+    @Security.Authenticated(Secured.class)
+    public Result updateDeal(Long dealId) {
+
+        Form<DealForm> form = formFactory.form(DealForm.class).bindFromRequest();
+        if (form.hasErrors()) {
+            return badRequest(form.errorsAsJson());
+        }
+
+        Deal deal = Deal.find.byId(dealId);
+        if (deal == null) {
+            return badRequest(form.errorsAsJson());
+        }
+
+        try {
+            DealForm dealForm = form.get();
+            DealFactory.updateDeal(deal, dealForm);
+            deal.save();
+
+            return ok(Json.toJson(deal)).as(MediaType.JSON_UTF_8.toString());
+        } catch (Exception e) {
+            return badRequest(Json.toJson(e.getMessage()));
+        }
+
     }
 
-    @ApiOperation(value = "Add state", response = StateForm.class)
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "value", value = "Value", required = true, dataType = "double", paramType = "form"),
-    })
-    public Result createState(@ApiParam(value = "Associated deal ID") Long dealId) {
-        
+    private JsonNode buildMessage(String message) {
+        return Json.toJson(new String[][]{{"message"}, {message}});
+    }
+
+
+    @Security.Authenticated(Secured.class)
+    public Result createState(Long dealId) {
+
         Form<StateForm> form = formFactory.form(StateForm.class).bindFromRequest();
         if (form.hasErrors()) {
             return badRequest(form.errorsAsJson());
@@ -120,25 +108,121 @@ public class ApiController extends Controller {
             return notFound("Deal with id " + dealId + " is not found");
         }
 
+        Calendar calendar = Calendar.getInstance();
+        Date today = calendar.getTime();
+        if (deal.getLastState() != null && DateUtils.isSameDay(deal.getLastState().getDate(), today)) {
+            List<State> states = deal.getStates().stream().sorted((state1, state2) -> state2.getDate().compareTo(state1.getDate())).collect(Collectors.toList());
+            if (states.size() >= 2 && stateForm.getValue() < states.get(1).getValue()) {
+                return status(NOT_ACCEPTABLE, Json.toJson(new HashMap<String, String>(){{
+                    put("message", "STATE_VALUE_NOT_VALID");
+                    put("value", String.valueOf(states.get(1).getValue()));
+                }})); //la valeur du compteur ne doit pas être inferieure à la précedente saisie
+            }
+            deal.getLastState().setValue(stateForm.getValue());
+            if (states.size() > 2) {
+                deal.getLastState().setDiff(stateForm.getValue() - states.get(1).getValue());
+            } else {
+                deal.getLastState().setDiff(1l);
+            }
+
+            deal.getLastState().save();
+
+            return ok(Json.toJson(deal.getLastState())).as(MediaType.JSON_UTF_8.toString());
+        }
+
+        if (deal.getLastState() != null && stateForm.getValue() < deal.getLastState().getValue()) {
+            return status(NOT_ACCEPTABLE, Json.toJson(new HashMap<String, String>(){{
+                put("message", "STATE_VALUE_NOT_VALID");
+                put("value", String.valueOf(deal.getLastState().getValue()));
+            }})); //la valeur du compteur ne doit pas être inferieure à la précedente saisie
+        }
+
         try {
-            Calendar calendar = Calendar.getInstance();
-            Date today = calendar.getTime();
             state.setDate(today);
             state.setUnitPrice(deal.getUnitPrice());
+            state.setSubscriptionPrice(deal.getSubscriptionPrice());
+            state.setDeal(deal);
+            state.setSupplier(deal.getSupplier());
+            coefProcessor.setCoef(state);
 
             if (deal.getStates() != null && !deal.getStates().isEmpty()) {
                 state.setDiff(state.getValue() - deal.getLastState().getValue());
             } else {
                 deal.setStates(new ArrayList<State>());
-                state.setDiff(0l);
+                state.setDiff(1l);
             }
 
-            state.setDeal(deal);
             state.save();
 
             return ok(Json.toJson(state)).as(MediaType.JSON_UTF_8.toString());
         } catch (Exception e) {
             return badRequest(Json.toJson(e.getMessage()));
         }
+    }
+
+    @Security.Authenticated(Secured.class)
+    public Result getState(Long dealId) {
+        Deal deal = Deal.find.byId(dealId);
+        if (deal == null) {
+            return notFound("Deal with id " + dealId + " is not found");
+        }
+
+        return ok(Json.toJson(deal.getStates())).as(MediaType.JSON_UTF_8.toString());
+    }
+
+    @Security.Authenticated(Secured.class)
+    public Result getFormattedStates(Long dealId, Integer year, String unit) {
+        Deal deal = Deal.find.byId(dealId);
+        if (deal == null) {
+            return notFound("Deal with id " + dealId + " is not found");
+        }
+        List<State> states = State.findYearStates(dealId, year);
+        Double[] global = {0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d};
+        Double[] conso = {0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d};
+        Double[] subscription = {0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d, 0d};
+        DateTime today = new DateTime();
+        for (State state : states) {
+            DateTime date = new DateTime(state.getDate());
+            conso[date.getMonthOfYear() - 1] = conso[date.getMonthOfYear() - 1] + computeStateValue(state, unit);
+            if ("EUR".equals(unit)) {
+                if (date.getMonthOfYear() < today.getMonthOfYear()) {
+                    subscription[date.getMonthOfYear() - 1] = state.getSubscriptionPrice();
+                } else if (date.getMonthOfYear() == today.getMonthOfYear()) {
+                    subscription[date.getMonthOfYear() - 1] = state.getSubscriptionPrice() * date.getDayOfMonth() / date.dayOfMonth().withMaximumValue().getDayOfMonth();
+                }
+            }
+        }
+
+        for (int i= 0; i< global.length; i++) {
+            global[i] = conso[i] + subscription[i];
+        }
+
+        Map<String, Double[]> result = new HashMap<String, Double[]>(){{
+            put("global", global);
+            put("conso", conso);
+            put("subscription", subscription);
+        }};
+
+        return ok(Json.toJson(result)).as(MediaType.JSON_UTF_8.toString());
+
+    }
+
+    private Double computeStateValue(State state, String unit) {
+        Double value = state.getDiff().doubleValue() * state.getCoef();
+        if ("EUR".equals(unit)) {
+            value = value * state.getUnitPrice();
+        }
+
+        return value;
+    }
+
+    @Security.Authenticated(Secured.class)
+    public Result getResources() {
+        return ok(Json.toJson(Resource.find.all())).as(MediaType.JSON_UTF_8.toString());
+    }
+
+    @Security.Authenticated(Secured.class)
+    public Result getResource(String key) {
+        return ok(Json.toJson(Resource.findByKey(key))).as(MediaType.JSON_UTF_8.toString());
     }
 }

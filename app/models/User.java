@@ -2,6 +2,7 @@ package models;
 
 import com.avaje.ebean.ExpressionList;
 import com.avaje.ebean.Model;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import javax.persistence.*;
 import java.util.List;
@@ -28,7 +29,20 @@ public class User extends Model {
     @OneToMany(mappedBy = "user")
     private List<Deal> deals;
 
-    public static Finder<Long, User> find = new Finder<Long, User>(User.class);
+    @Column
+    private String firstName;
+
+    @Column
+    private String lastName;
+
+    @Column
+    @JsonIgnore
+    private String password;
+
+    @Column(length = 1000)
+    private String accessToken;
+
+    public static Model.Finder<Long, User> find = new Model.Finder<Long, User>(User.class);
 
     public static User findByEmail(String email) {
         ExpressionList<User> res = find.where().eq("email", email);
@@ -36,35 +50,22 @@ public class User extends Model {
         return res.findUnique();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        } if (obj == null || obj.getClass() != this.getClass()) {
-            return false;
+    public static User findByAccessToken(String accessToken) {
+        if (accessToken == null) {
+            return null;
         }
-        User aux = (User) obj;
 
-        return email.equals(aux.email);
-    }
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 1;
-        result = (int) (prime * result + ((id == null) ? 0 : id));
-        result = prime * result + ((email == null) ? 0 : email.hashCode());
-
-        return result;
+        try  {
+            return find.where().eq("accessToken", accessToken).findUnique();
+        }
+        catch (Exception e) {
+            return null;
+        }
     }
 
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getEmail() {
@@ -89,5 +90,37 @@ public class User extends Model {
 
     public void setDeals(List<Deal> deals) {
         this.deals = deals;
+    }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public String getAccessToken() {
+        return accessToken;
+    }
+
+    public void setAccessToken(String accessToken) {
+        this.accessToken = accessToken;
     }
 }

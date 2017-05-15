@@ -1,24 +1,21 @@
 package factory;
 
-import form.UserForm;
-import models.Deal;
+import form.RegisterForm;
 import models.User;
-
-import java.util.ArrayList;
+import org.mindrot.jbcrypt.BCrypt;
 
 /**
  * Created by abdoulbou on 10/01/17.
  */
 public class UserFactory {
 
-    public static User createUser(UserForm form) {
+    public static void createUser(RegisterForm form) {
         User user = new User();
-        user.setDeals(new ArrayList<Deal>());
         user.setEmail(form.getEmail());
-        user.setName(form.getName());
-
+        user.setPassword(BCrypt.hashpw(form.getPassword(), BCrypt.gensalt()));
+        user.setFirstName(form.getFirstName());
+        user.setLastName(form.getLastName());
         user.save();
-        return user;
     }
 
     public static  User getUser(String email) {
